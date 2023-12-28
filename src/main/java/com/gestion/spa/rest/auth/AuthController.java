@@ -20,6 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -204,10 +205,13 @@ public Object getCurrentUser()
     public ResponseEntity<Object> updateUser(@RequestBody UserEntity userEntity, @PathVariable long id)
     {
         Optional<UserEntity> user = userRepository.findById(id);
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+
         if(user.isPresent())
         {
             user.get().setUsername(userEntity.getUsername());
-            user.get().setPassword(userEntity.getPassword());
+            user.get().setPassword(passwordEncoder.encode(userEntity.getPassword()));
             userRepository.save(user.get());
             return new ResponseEntity<>("USER UPDATED SUCCESSFULLY", HttpStatus.OK);
         }
