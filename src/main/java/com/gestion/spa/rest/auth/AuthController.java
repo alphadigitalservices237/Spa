@@ -215,6 +215,7 @@ public Object getCurrentUser()
             userRepository.save(user.get());
             return new ResponseEntity<>("USER UPDATED SUCCESSFULLY", HttpStatus.OK);
         }
+        //
 
         return new ResponseEntity<>("USER NOT FOUND", HttpStatus.BAD_REQUEST);
     }
