@@ -19,12 +19,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+// import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+// import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -52,14 +52,26 @@ public class AuthController {
     }
 
     @PostMapping("employee/login")
-    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto) {
-        Authentication authentication = authenticationManager.authenticate(
+    public ResponseEntity<Object> login(@RequestBody LoginDto loginDto) {
+        Optional<UserEntity> user = userRepository.findByUsername(loginDto.getUsername());
+        if(user.isPresent())
+        {
+            if(user.get().getActive() == true)
+            {
+                 Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken
                         (loginDto.getUsername(), loginDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        Authentication usr = SecurityContextHolder.getContext().getAuthentication();
+        // Authentication usr = SecurityContextHolder.getContext().getAuthentication();
+        
         String token = jwtGenerator.generateToken(authentication);
         return new ResponseEntity<>(new AuthResponseDto(token), HttpStatus.OK);
+            }
+            return new ResponseEntity<>("User not active",HttpStatus.UNAUTHORIZED);
+
+        }
+
+       return new ResponseEntity<>("User not present",HttpStatus.UNAUTHORIZED);
     }
 
 @PostMapping("cashier/login")
@@ -83,7 +95,7 @@ public ResponseEntity<AuthResponseDto> chashierLogin(@RequestBody LoginDto login
 @GetMapping("user/get")
 public Object getCurrentUser()
 {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    // Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     Authentication user = SecurityContextHolder.getContext().getAuthentication();
     Role cashier=roleRepository.findByName("CASHIER").get();
     Role employee=roleRepository.findByName("EMPLOYEE").get();
@@ -226,15 +238,37 @@ public Object getCurrentUser()
         Optional<UserEntity> user = userRepository.findById(id);
         if(user.isPresent())
         {
-           user.get().getRoles().remove(user.get().getRoles().get(0));
-           userRepository.save(user.get());
-           userRepository.deleteById(id);
+        //    user.get().getRoles().remove(user.get().getRoles().get(0));
+        //    userRepository.save(user.get());
+        // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        user.get().setActive(false);
+        userRepository.save(user.get());
+            // userRepository.deleteById(id);
             return new ResponseEntity<>("USER DELETED SUCCESSFULLY", HttpStatus.OK);
+           
         }
 
         return new ResponseEntity<>("USER NOT FOUND", HttpStatus.BAD_REQUEST);
     }
 
+    @DeleteMapping("/{id}/activate")
+    public ResponseEntity<Object> activateUser(@PathVariable long id)
+    {
+        Optional<UserEntity> user = userRepository.findById(id);
+        if(user.isPresent())
+        {
+        //    user.get().getRoles().remove(user.get().getRoles().get(0));
+        //    userRepository.save(user.get());
+        // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        user.get().setActive(true);
+        userRepository.save(user.get());
+            // userRepository.deleteById(id);
+            return new ResponseEntity<>("USER ACTIVATED SUCCESSFULLY", HttpStatus.OK);
+           
+        }
+
+        return new ResponseEntity<>("USER NOT FOUND", HttpStatus.BAD_REQUEST);
+    }
 
 
 }

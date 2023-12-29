@@ -5,7 +5,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jdk.jfr.BooleanFlag;
+// import jdk.jfr.BooleanFlag;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.lang.Nullable;
@@ -78,7 +78,7 @@ public class UserEntity implements Serializable {
         this.active = active;
     }
 
-    @OneToMany(cascade = CascadeType.DETACH,mappedBy = "employee" )
+    @OneToMany(cascade = CascadeType.ALL,mappedBy = "employee" )
     private List<Product> products;
     @JsonManagedReference(value = "employee-products")
     public List<Product> getProducts() {
@@ -87,7 +87,7 @@ public class UserEntity implements Serializable {
 
     private Boolean active=true;
 
-    @ManyToMany(fetch=FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch=FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name="user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name="role_id", referencedColumnName = "id"))
     private List<Role> roles =  new ArrayList<>();
